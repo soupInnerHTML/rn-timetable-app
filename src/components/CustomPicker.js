@@ -1,21 +1,27 @@
 import React, {useState, useEffect} from 'react';
 import {Picker, StyleSheet, View} from "react-native";
-import id from 'lodash/uniqueId'
+import getKey from 'lodash/uniqueId'
 
-const CustomPicker = ({state, cache, type}) => {
+export default ({state, cache, isReady, type}) => {
     const [value, setValue] = useState(state[0])
 
-    const changeHandler = (item) => {
+    const changeHandler = async (item) => {
         setValue(item)
-        cache.set(type, item);
+        await cache.set(type, item);
     }
 
     useEffect(() => {
         (async () => {
             const _cache = await cache.get(type);
-            _cache && setValue(_cache)
+            if(_cache) {
+                setValue(_cache)
+            }
+            else {
+                cache.set(type, value);
+            }
+            console.log(_cache)
         })()
-    }, [])
+    }, [value, isReady])
 
     return <View style={styles.input}>
         <Picker
@@ -23,7 +29,7 @@ const CustomPicker = ({state, cache, type}) => {
             onValueChange={changeHandler}>
             {
                 state.map(item => (
-                    <Picker.Item key={id()} label={item} value={item} />
+                    <Picker.Item key={getKey()} label={item} value={item} />
                 ))
             }
         </Picker>
@@ -38,5 +44,3 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     }
 });
-
-export default CustomPicker;

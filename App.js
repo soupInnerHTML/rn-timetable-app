@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import { StatusBar } from 'expo-status-bar';
-import {StyleSheet, ScrollView, Button, SafeAreaView, View, ActivityIndicator, AsyncStorage} from 'react-native';
+import {StyleSheet, ScrollView, Button, SafeAreaView, View, ActivityIndicator, AsyncStorage, TouchableOpacity, Text, Linking} from 'react-native';
 import { Cache } from "react-native-cache";
 import CustomPicker from "./src/components/CustomPicker";
 import Timetable from "./src/components/Timetable";
@@ -33,7 +33,7 @@ export default () => {
     // state
     const [tables, setTables] = useState([])
     const [groups, setGroups] = useState([])
-    const [isPressed, setPress] = useState(false)
+    const [isPressed, setPress] = useState(false) //TODO delete?
     const [isReady, setReady] = useState(false)
 
     //effects
@@ -47,24 +47,26 @@ export default () => {
 
     }, [])
 
-    useEffect(() => {
-        (async () => {
-            const _cache = await cache.getAll();
-            console.log(cache)
-        })()
-
-    }, [cache.toString()])
+    // check null cache
+    // useEffect(() => {
+    //     (async () => {
+    //         await cache.clearAll();
+    //         const _cache = await cache.getAll();
+    //         console.log(_cache)
+    //     })()
+    //
+    // }, [])
 
 
     const getTimetable = async () => {
         try {
+            setPress(true)
             setReady(false)
             const _cache = await cache.getAll();
             const inputs = [
                 groups.find(group => group.name === _cache.group.value).id,
                 _cache.date.value.split(' - ')[0].split('.').reverse().join('-')
             ]
-            console.log(inputs)
             const dates = new Set()
             const response = await fetch(`https://api.ptpit.ru/timetable/groups/${inputs[0]}/${inputs[1]}`)
             const json = await response.json();
@@ -81,8 +83,12 @@ export default () => {
                             return [
                                 pair.num,
                                 time[pair.num - 1], //time
-                                pair.subject_name,
-                                pair.subgroup || 'Группа',
+                                pair.moodle ? <TouchableOpacity activeOpacity={.7} onPress={() => Linking.openURL(JSON.parse(pair.moodle)[0].url)}>
+                                    <Text style={styles.link}>
+                                        {pair.subject_name}
+                                    </Text>
+                                </TouchableOpacity> : pair.subject_name,
+                                pair.subgroup || '—',
                                 `${pair.teacher_surname} ${pair.teacher_name[0]}.${pair.teacher_secondname[0]}.`,
                                 //teacher
                                 pair.room_name
@@ -91,17 +97,20 @@ export default () => {
                 }
             })
 
-            console.log(tables)
             setTables(tables)
 
-            setPress(true)
             setReady(true)
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
             setReady(true)
         }
 
+    }
+
+    //props
+    const pickerProps = {
+        cache, isReady
     }
 
     //UI
@@ -112,10 +121,10 @@ export default () => {
                         isReady ?
                         <View style={styles.inner}>
                             <StatusBar style="auto" />
-                            <CustomPicker state={weeks} {...{cache}} type={'date'}/>
-                            <CustomPicker state={groups.map(e => e.name)} {...{cache}} type={'group'}/>
+                            <CustomPicker state={weeks} {...pickerProps} type={'date'}/>
+                            <CustomPicker state={groups.map(e => e.name)} {...pickerProps} type={'group'}/>
                             <Button title={"Посмотреть"} onPress={getTimetable}/>
-                            <Timetable {...{isPressed, tables}} />
+                            {isPressed && <Timetable {...{tables}} />}
                         </View>
                             :
                         <View style={styles.loader}>
@@ -132,11 +141,11 @@ export default () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff'
+        backgroundColor: '#fff',
     },
     inner: {
         marginTop: 50,
-        marginHorizontal: 10,
+        marginHorizontal: 6,
     },
     loader: {
         marginTop: "75%",
@@ -144,5 +153,10 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 100,
         color: "#000"
+    },
+    link: {
+        color: '#2999F2',
+        margin: 6,
+        fontSize: 12
     }
 });
