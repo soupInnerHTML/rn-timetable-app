@@ -12,6 +12,7 @@ export default ({state, cache, isReady, type}) => {
 
     useEffect(() => {
         (async () => {
+            console.log(value)
             const _cache = await cache.get(type);
             if(_cache) {
                 setValue(_cache)
@@ -21,7 +22,7 @@ export default ({state, cache, isReady, type}) => {
             }
             console.log(_cache)
         })()
-    }, [value, isReady])
+    }, [])
 
     return <View style={styles.input}>
         <Picker

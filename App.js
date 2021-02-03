@@ -4,16 +4,26 @@ import {StyleSheet, ScrollView, Button, SafeAreaView, View, ActivityIndicator, A
 import { Cache } from "react-native-cache";
 import CustomPicker from "./src/components/CustomPicker";
 import Timetable from "./src/components/Timetable";
+import dayjs from 'dayjs'
 
 export default () => {
 
+    //scope (3 weeks) for current date
+    const curr = dayjs()
+    const last = curr.subtract(7, 'day')
+    const next = curr.add(7, 'day')
+
+    const all = [last, curr, next].map(week => [
+        week.startOf('week'),
+        week.endOf('week'),
+    ])
+
+    const weeks = all.map(
+        week => week.map( date => date.add(1, 'day').format('DD.MM.YYYY') ).join` - `
+    )
+
     // variables
     const day = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']
-    const weeks = [
-        "25.01.2021 - 31.01.2021",
-        "01.02.2021 - 07.02.2021",
-        "08.02.2021 - 15.02.2021",
-    ]
     const time = [
         '8:30\n10:05',
         '10:25\n12:00',
@@ -67,6 +77,7 @@ export default () => {
                 groups.find(group => group.name === _cache.group.value).id,
                 _cache.date.value.split(' - ')[0].split('.').reverse().join('-')
             ]
+            console.log(inputs, _cache.date.value.split(' - ')[0])
             const dates = new Set()
             const response = await fetch(`https://api.ptpit.ru/timetable/groups/${inputs[0]}/${inputs[1]}`)
             const json = await response.json();
@@ -76,7 +87,7 @@ export default () => {
             })
 
             const tables = Array.from(dates).map((date, i) => {
-                const parseDate =  `${day[i]} (${date.slice(-5).split`-`.reverse().join`.`})`
+                const parseDate =  `${day[i]} (${ dayjs(date).format('DD.MM') })`
                 return {
                     [parseDate]: json.filter(e => e.date === date)
                         .map(pair => {

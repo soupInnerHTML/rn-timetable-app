@@ -1,7 +1,8 @@
 import {Row, Rows, Table} from "react-native-table-component";
-import {StyleSheet,Text} from "react-native";
+import {StyleSheet, Text, View} from "react-native";
 import React from 'react'
 import getKey from 'lodash/uniqueId'
+import { Entypo } from '@expo/vector-icons';
 
 export default ({tables,}) => {
     const tableHead = [
@@ -14,7 +15,8 @@ export default ({tables,}) => {
     ]
     const flexArr = [.4, 1, 2, 1, 1.3, .7]
 
-    return tables.map(table => (
+    if(tables.length) {
+        return tables.map(table => (
             <Table
                 style={ styles.table }
                 borderStyle={{borderWidth: 2, borderColor: '#c8e1ff'}}
@@ -26,6 +28,16 @@ export default ({tables,}) => {
                 <Rows { ...{flexArr} } data={ Object.values(table)[0] } textStyle={styles.rows}/>
             </Table>
         ))
+    }
+
+    else {
+        return (
+            <View style={styles.info}>
+                <Entypo name="info-with-circle" size={32} color="#2999F2" />
+                <Text style={styles.infoMessage}>Расписание на эту неделю остуствует</Text>
+            </View>
+        )
+    }
 };
 
 //styles
@@ -47,4 +59,13 @@ const styles = StyleSheet.create({
     table: {
         marginVertical: 10,
     },
+    info: {
+        flex: 1,
+        alignItems: 'center',
+        marginTop: 50
+    },
+    infoMessage: {
+        fontSize: 16,
+        marginTop: 10,
+    }
 });
