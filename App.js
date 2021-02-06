@@ -1,10 +1,24 @@
 import React, {useState, useEffect} from 'react';
 import { StatusBar } from 'expo-status-bar';
-import {StyleSheet, ScrollView, Button, SafeAreaView, View, ActivityIndicator, AsyncStorage, TouchableOpacity, Text, Linking} from 'react-native';
+import {
+    StyleSheet,
+    ScrollView,
+    Button,
+    SafeAreaView,
+    View,
+    ActivityIndicator,
+    AsyncStorage,
+    TouchableOpacity,
+    Text,
+    Linking,
+    Modal
+} from 'react-native';
 import { Cache } from "react-native-cache";
 import CustomPicker from "./src/components/CustomPicker";
 import Timetable from "./src/components/Timetable";
 import dayjs from 'dayjs'
+import {useNullCache} from "./src/hooks/useNullCache";
+import CustomModal from "./src/components/CustomModal";
 
 export default () => {
 
@@ -32,6 +46,13 @@ export default () => {
         '16:10\n17:55',
         '18:00\n19:35',
     ]
+    const types = (type) => {
+        switch (type) {
+            case 'task': return 'Задача'
+            case 'meeting': return 'Встреча'
+            default: return type
+        }
+    }
     const cache = new Cache({
         namespace: "myapp",
         policy: {
@@ -45,6 +66,8 @@ export default () => {
     const [groups, setGroups] = useState([])
     const [isPressed, setPress] = useState(false) //TODO delete?
     const [isReady, setReady] = useState(false)
+    const [modalVisible, setModalVisible] = useState(false)
+    const [moodle, setMoodle] = useState({})
 
     //effects
     useEffect(() => {
@@ -57,15 +80,19 @@ export default () => {
 
     }, [])
 
-    // check null cache
-    // useEffect(() => {
-    //     (async () => {
-    //         await cache.clearAll();
-    //         const _cache = await cache.getAll();
-    //         console.log(_cache)
-    //     })()
-    //
-    // }, [])
+    const moodleActions = (payload) => {
+        setModalVisible(true)
+        setMoodle({
+            type: types(payload.type),
+            url: <Text style={styles.link} onPress={() => Linking.openURL(payload.url)}>
+                {payload.url}
+            </Text>,
+            date: `${dayjs(payload.date).format('DD.MM.YYYY')} ${payload.time}`
+        })
+    }
+
+    // dev check null cache cases
+    // useNullCache(cache)
 
 
     const getTimetable = async () => {
@@ -77,7 +104,7 @@ export default () => {
                 groups.find(group => group.name === _cache.group.value).id,
                 _cache.date.value.split(' - ')[0].split('.').reverse().join('-')
             ]
-            console.log(inputs, _cache.date.value.split(' - ')[0])
+            // console.log(inputs, _cache.date.value.split(' - ')[0])
             const dates = new Set()
             const response = await fetch(`https://api.ptpit.ru/timetable/groups/${inputs[0]}/${inputs[1]}`)
             const json = await response.json();
@@ -94,7 +121,7 @@ export default () => {
                             return [
                                 pair.num,
                                 time[pair.num - 1], //time
-                                pair.moodle ? <TouchableOpacity activeOpacity={.7} onPress={() => Linking.openURL(JSON.parse(pair.moodle)[0].url)}>
+                                pair.moodle ? <TouchableOpacity activeOpacity={.7} onPress={() => moodleActions(JSON.parse(pair.moodle)[0])}>
                                     <Text style={styles.link}>
                                         {pair.subject_name}
                                     </Text>
@@ -130,16 +157,17 @@ export default () => {
             <ScrollView>
                     {
                         isReady ?
-                        <View style={styles.inner}>
-                            <StatusBar style="auto" />
+                        <View style={styles.inner} >
+                            <StatusBar style="default" backgroundColor={'#fff'}/>
                             <CustomPicker state={weeks} {...pickerProps} type={'date'}/>
                             <CustomPicker state={groups.map(e => e.name)} {...pickerProps} type={'group'}/>
                             <Button title={"Посмотреть"} onPress={getTimetable}/>
                             {isPressed && <Timetable {...{tables}} />}
+                            <CustomModal {...{modalVisible, moodle, setModalVisible}}/>
                         </View>
                             :
                         <View style={styles.loader}>
-                            <StatusBar style="auto" />
+                            <StatusBar style="default" backgroundColor={'#fff'}/>
                             <ActivityIndicator size="large" color="#2999F2" />
                         </View>
                     }

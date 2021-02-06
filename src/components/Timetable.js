@@ -3,6 +3,7 @@ import {StyleSheet, Text, View} from "react-native";
 import React from 'react'
 import getKey from 'lodash/uniqueId'
 import { Entypo } from '@expo/vector-icons';
+import {borderStyle, tabelStyles} from "../styles/table";
 
 export default ({tables,}) => {
     const tableHead = [
@@ -19,7 +20,7 @@ export default ({tables,}) => {
         return tables.map(table => (
             <Table
                 style={ styles.table }
-                borderStyle={{borderWidth: 2, borderColor: '#c8e1ff'}}
+                {...{borderStyle}}
                 key={getKey()}
             >
                 <Row data={ Object.keys(table).map(e => <Text style={styles.head}>{e}</Text>) }/>
@@ -48,17 +49,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         paddingVertical: 8
     },
-    heads: {
-        height: 40,
-        backgroundColor: '#f1f8ff'
-    },
-    rows: {
-        margin: 6,
-        fontSize: 12,
-    },
-    table: {
-        marginVertical: 10,
-    },
+    ...tabelStyles,
     info: {
         flex: 1,
         alignItems: 'center',

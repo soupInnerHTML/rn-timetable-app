@@ -2,8 +2,8 @@ import React, {useState, useEffect} from 'react';
 import {Picker, StyleSheet, View} from "react-native";
 import getKey from 'lodash/uniqueId'
 
-export default ({state, cache, isReady, type}) => {
-    const [value, setValue] = useState(state[0])
+export default ({state, cache, type}) => {
+    const [value, setValue] = useState(state[1])
 
     const changeHandler = async (item) => {
         setValue(item)
@@ -12,7 +12,6 @@ export default ({state, cache, isReady, type}) => {
 
     useEffect(() => {
         (async () => {
-            console.log(value)
             const _cache = await cache.get(type);
             if(_cache) {
                 setValue(_cache)
@@ -20,7 +19,6 @@ export default ({state, cache, isReady, type}) => {
             else {
                 cache.set(type, value);
             }
-            console.log(_cache)
         })()
     }, [])
 
@@ -39,9 +37,6 @@ export default ({state, cache, isReady, type}) => {
 
 const styles = StyleSheet.create({
     input: {
-        // borderBottomWidth: 1,
-        // borderStyle: "solid",
-        // borderColor: "#000",
         marginBottom: 10,
     }
 });
