@@ -1,8 +1,7 @@
 import React from 'react';
-import {Modal, StyleSheet, Text, TouchableHighlight, TouchableWithoutFeedback, View} from "react-native";
-import {Row, Table} from "react-native-table-component";
+import {StyleSheet, Text, TouchableHighlight, View, Modal} from "react-native";
+import {Row, Rows, Table, TableWrapper} from "react-native-table-component";
 import {borderStyle, tabelStyles} from "../styles/table";
-
 
 const CustomModal = ({modalVisible, moodle, setModalVisible}) => {
     const tableHead = [
@@ -12,12 +11,16 @@ const CustomModal = ({modalVisible, moodle, setModalVisible}) => {
     ]
     const flexArr = [.5, 1, .6]
 
+    // React.useEffect(() => console.log(moodle), [JSON.stringify(moodle)])
+
     return (
         <View style={styles.centeredView}>
             <Modal
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
+                hardwareAccelerated
+                onRequestClose={() => setModalVisible(false)}
             >
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
@@ -28,7 +31,9 @@ const CustomModal = ({modalVisible, moodle, setModalVisible}) => {
                             >
                                 <Row {...{flexArr}} data={ tableHead } style={styles.heads} textStyle={styles.rows} />
 
-                                <Row {...{flexArr}} data={ Object.values(moodle) } textStyle={styles.rows}/>
+                                <TableWrapper style={styles.wrapper}>
+                                    <Rows {...{flexArr}} data={ moodle } textStyle={styles.rows}/>
+                                </TableWrapper>
                             </Table>
 
                             <TouchableHighlight
@@ -81,6 +86,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         textAlign: "center"
     },
+    wrapper: { flexDirection: 'row' },
     ...tabelStyles
 });
 
