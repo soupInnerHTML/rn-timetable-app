@@ -74,13 +74,13 @@ export default () => {
     const [week, setWeek] = useState('date')
     const [second, setSecond] = useState('group')
     const [source, setSource] = useState('source')
+    const [sourceType, setSourceType] = useState('group')
 
     //effects
     useEffect(() => {
         (async () => {
-            console.log('mount')
             const _cache = await cache.getAll()
-            console.log(_cache)
+            // console.log(_cache)
             setWeek(_cache.date?.value || weeks[1])
             setSecond(_cache.group?.value)
             setSource(_cache.source?.value || sources[0])
@@ -95,10 +95,12 @@ export default () => {
 
     }, [])
 
-    useEffect(() => {
-        console.log(call)
-
-    }, [call])
+    // useEffect(() => {
+    //     (async () => {
+    //         const _cache = await cache.getAll()
+    //         console.log(_cache)
+    //     })()
+    // }, [JSON.stringify(cache)])
 
 
     const moodleActions = (payload) => {
@@ -199,7 +201,7 @@ export default () => {
                     <CustomPicker
                         state={Array.isArray(call) ? call.map(e => e.name) : []}
                         {...pickerProps}
-                        type={'group'}
+                        type={sourceType}
                         setValue={setSecond}
                         value={second}
                     />
