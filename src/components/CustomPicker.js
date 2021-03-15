@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react';
-import {Picker, StyleSheet, View} from "react-native";
+import React, { useState, useEffect } from 'react';
+import { Picker, StyleSheet, View } from "react-native";
 import getKey from 'lodash/uniqueId'
 
-export default React.memo(({state, cache, type, setCall, setReady, setValue, value, setSecond, setSourceType}) => {
+export default React.memo(({ state, cache, type, setCall, setReady, setValue, value, setSecond, ...props }) => {
 
     const changeHandler = async (item) => {
         const types = {
@@ -11,7 +11,7 @@ export default React.memo(({state, cache, type, setCall, setReady, setValue, val
             'Аудитории': 'room'
         }
 
-        if(type === 'source') {
+        if (type === 'source') {
             const endpoints = {
                 'Группы': 'groups',
                 'Преподаватели': 'persons/teachers',
@@ -20,17 +20,19 @@ export default React.memo(({state, cache, type, setCall, setReady, setValue, val
             setReady(false)
             const response = await fetch(`https://api.ptpit.ru/${endpoints[item]}?filters=start_date:dlte:2/23/2021|end_date:dgte:1/23/2021|parent:isnull`)
             const data = await response.json()
-            console.log(data)
+            console.log(item)
             setCall(data)
+            props.setSource(item)
             setSecond(data[0].name)
-            // setSourceType(endpoints[item])
+
             setReady(true)
         }
 
+        console.log(type, item)
         setValue(item)
-        await cache.set(types[item] || type, item)
+        await cache.set(types[type] || type, item)
         const a = await cache.getAll()
-        console.log(a)
+        // console.log(a)
     }
 
     // useEffect(() => {
