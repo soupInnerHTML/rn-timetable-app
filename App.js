@@ -79,22 +79,24 @@ export default () => {
     //effects
     useEffect(() => {
         (async () => {
-            console.log('render')
+            // console.log('render')
             // reload cache on sunday
             if (curr.add(1, 'day').format('DD.MM.YYYY') === next.format('DD.MM.YYYY')) {
                 await cache.remove('date')
             }
 
             const baseEndpoints = {
-                'Группы': `https://api.ptpit.ru/groups?filters=start_date:dlte:2/23/2021|end_date:dgte:1/23/2021|parent:isnull`,
-                'Преподаватели': `https://api.ptpit.ru/persons/teachers`,
-                'Аудитории': `https://api.ptpit.ru/rooms`
+                'Группы': 'https://api.ptpit.ru/groups?filters=start_date:dlte:2/23/2021|end_date:dgte:1/23/2021|parent:isnull',
+                'Преподаватели': 'https://api.ptpit.ru/persons/teachers',
+                'Аудитории': 'https://api.ptpit.ru/rooms'
             }
 
             const _cache = await cache.getAll()
             const _source = _cache.source?.value || sources[0]
             const _week = _cache.date?.value || weeks[1]
             const _second = _cache.group?.value
+
+            console.log(_cache)
 
             setWeek(_week)
             setSecond(_second)
@@ -143,7 +145,8 @@ export default () => {
                 'Аудитории': `https://api.ptpit.ru/rooms/${inputs.id}/timetable/${inputs.week}`
             }
 
-            console.log(inputs, paths[source])
+
+
             const dates = new Set()
             const response = await fetch(paths[(_source || source)])
             const json = await response.json();
@@ -175,7 +178,6 @@ export default () => {
             })
 
             setTables(tables)
-
             setReady(true)
         }
         catch (e) {
