@@ -8,19 +8,20 @@ import {
     SafeAreaView,
     View,
     ActivityIndicator,
-    AsyncStorage,
     TouchableOpacity,
     Text,
-    Linking
 } from 'react-native';
-import { Cache } from "react-native-cache";
 import CustomPicker from "./src/components/CustomPicker";
 import Timetable from "./src/components/Timetable";
 import dayjs from 'dayjs'
 import { useNullCache } from "./src/hooks/useNullCache";
 import CustomModal from "./src/components/CustomModal";
+import entities from './src/store/Entities'
+import schedule from './src/store/Schedule';
+import { observer } from 'mobx-react-lite'
+import cache from './src/global/cache'
 
-export default () => {
+export default observer(() => {
 
     //scope (3 weeks) for current date
     const curr = dayjs()
@@ -47,30 +48,10 @@ export default () => {
     ]
     const sources = ['Группы', 'Преподаватели', 'Аудитории']
 
-    const types = (type) => {
-        switch (type) {
-            case 'task': return 'Задача'
-            case 'meeting': return 'Встреча'
-            case 'resource': return 'Ресурс'
-            default: return type
-        }
-    }
-    const cache = new Cache({
-        namespace: "myapp",
-        policy: {
-            maxEntries: 50000
-        },
-        backend: AsyncStorage
-    });
 
-    // state
-    const [tables, setTables] = useState([])
-    const [call, setCall] = useState([])
-    const [isPressed, setPress] = useState(false)
-    const [isReady, setReady] = useState(false)
-    const [modalVisible, setModalVisible] = useState(false)
-    const [moodle, setMoodle] = useState([])
+    const { call, isPressed, isReady } = schedule
 
+    // TODO вынести в store
     const [week, setWeek] = useState(null)
     const [second, setSecond] = useState('group')
     const [source, setSource] = useState('source')
@@ -91,6 +72,12 @@ export default () => {
                 'Аудитории': 'https://api.ptpit.ru/rooms'
             }
 
+            const types = {
+                'Группы': 'group',
+                'Преподаватели': 'teacher',
+                'Аудитории': 'room'
+            }
+
             const _cache = await cache.getAll()
             const _source = _cache.source?.value || sources[0]
             const _week = _cache.date?.value || weeks[1]
@@ -103,37 +90,26 @@ export default () => {
             setSource(_source)
             const response = await fetch(baseEndpoints[_source])
             const _call = await response.json()
-            setCall(_call)
-            _cache.pressed?.value ? getTimetable(_call, _week, _source, _second) : setReady(true)
+            schedule.set('call', _call)
+            entities.set(types[_source], 'list', _call)
+            _cache.pressed?.value ? getTimetable(_call, _week, _source, _second) : schedule.set('isReady', true)
         })()
 
         return () => console.log('unmount')
 
     }, [])
 
-
-    const moodleActions = (payload) => {
-        setModalVisible(true)
-
-        const _moodle = payload.map(payload => [
-            types(payload.type),
-            <Text style={styles.link} onPress={() => Linking.openURL(payload.url)}>
-                {payload.url}
-            </Text>,
-            `${dayjs(payload.date).format('DD.MM.YYYY')} ${payload.time}`
-        ])
-        setMoodle(_moodle)
-    }
-
     // dev check null cache cases
     // useNullCache(cache)
     // TODO delete in production
 
 
+
+    // TODO вынести в Schedule
     const getTimetable = async (_call, _week, _source, _second) => {
         try {
-            setPress(true)
-            setReady(false)
+            schedule.set('isPressed', true)
+            schedule.set('isReady', false)
             const inputs = {
                 id: (_call || call).find(item => item.name === (_second || second)).id,
                 week: (_week || week).split(' - ')[0].split('.').reverse().join('-')
@@ -163,7 +139,7 @@ export default () => {
                             return [
                                 pair.num,
                                 time[pair.num - 1], //time
-                                pair.moodle ? <TouchableOpacity activeOpacity={.7} onPress={() => moodleActions(JSON.parse(pair.moodle))}>
+                                pair.moodle ? <TouchableOpacity activeOpacity={.7} onPress={() => schedule.moodleActions(JSON.parse(pair.moodle))}>
                                     <Text style={styles.link}>
                                         {pair.subject_name}
                                     </Text>
@@ -177,22 +153,16 @@ export default () => {
                 }
             })
 
-            setTables(tables)
-            setReady(true)
+            schedule.set('tables', tables)
+            schedule.set('isReady', true)
         }
         catch (e) {
             console.error(e)
-            setReady(true)
+            schedule.set('isReady', true)
         }
 
     }
 
-    //props
-    const pickerProps = {
-        cache,
-    }
-
-    //UI
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView>
@@ -201,7 +171,6 @@ export default () => {
 
                     <CustomPicker
                         state={weeks}
-                        {...pickerProps}
                         type={'date'}
                         setValue={setWeek}
                         value={week}
@@ -209,7 +178,6 @@ export default () => {
 
                     <CustomPicker
                         state={Array.isArray(call) ? call.map(e => e.name) : []}
-                        {...pickerProps}
                         type={sourceType}
                         setValue={setSecond}
                         value={second}
@@ -217,8 +185,7 @@ export default () => {
 
                     <CustomPicker
                         state={sources}
-                        {...pickerProps}
-                        {...{ setCall, setReady, setSecond, setSource }}
+                        {...{ setSecond, setSource }}
                         type={'source'}
                         setValue={setSourceType}
                         value={source}
@@ -227,8 +194,9 @@ export default () => {
                         getTimetable()
                         cache.set('pressed', true)
                     }} />
-                    {isPressed && <Timetable {...{ tables }} />}
-                    <CustomModal {...{ modalVisible, moodle, setModalVisible }} />
+                    {isPressed && <Timetable />}
+
+                    <CustomModal />
                 </View>
 
                 <View style={[styles.loader, isReady ? styles.hide : {}]}>
@@ -238,9 +206,8 @@ export default () => {
             </ScrollView>
         </SafeAreaView>
     );
-}
+})
 
-//styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -256,11 +223,6 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 100,
         color: "#000"
-    },
-    link: {
-        color: '#2999F2',
-        margin: 6,
-        fontSize: 12
     },
     hide: {
         display: 'none'

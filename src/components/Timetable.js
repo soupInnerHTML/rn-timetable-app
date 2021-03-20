@@ -1,11 +1,13 @@
-import {Row, Rows, Table} from "react-native-table-component";
-import {StyleSheet, Text, View} from "react-native";
+import { Row, Rows, Table } from "react-native-table-component";
+import { StyleSheet, Text, View } from "react-native";
 import React from 'react'
 import getKey from 'lodash/uniqueId'
 import { Entypo } from '@expo/vector-icons';
-import {borderStyle, tabelStyles} from "../styles/table";
+import { borderStyle, tabelStyles } from "../global/table";
+import { observer } from 'mobx-react-lite'
+import schedule from "../store/Schedule";
 
-export default ({tables,}) => {
+export default observer(() => {
     const tableHead = [
         '#',
         'Время',
@@ -15,18 +17,19 @@ export default ({tables,}) => {
         'Каб.'
     ]
     const flexArr = [.4, 1, 2, 1, 1.3, .7]
+    const { tables } = schedule
 
-    if(tables.length) {
+    if (tables.length) {
         return tables.map(table => (
             <Table
-                style={ styles.table }
-                {...{borderStyle}}
+                style={styles.table}
+                {...{ borderStyle }}
                 key={getKey()}
             >
-                <Row data={ Object.keys(table).map(e => <Text style={styles.head}>{e}</Text>) }/>
-                <Row data={tableHead} style={styles.heads} textStyle={styles.rows} { ...{flexArr} }/>
+                <Row data={Object.keys(table).map(e => <Text style={styles.head}>{e}</Text>)} />
+                <Row data={tableHead} style={styles.heads} textStyle={styles.rows} {...{ flexArr }} />
 
-                <Rows { ...{flexArr} } data={ Object.values(table)[0] } textStyle={styles.rows}/>
+                <Rows {...{ flexArr }} data={Object.values(table)[0]} textStyle={styles.rows} />
             </Table>
         ))
     }
@@ -39,7 +42,7 @@ export default ({tables,}) => {
             </View>
         )
     }
-};
+});
 
 //styles
 const styles = StyleSheet.create({

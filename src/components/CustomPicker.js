@@ -3,15 +3,17 @@ import { Picker, StyleSheet, View } from "react-native";
 import getKey from 'lodash/uniqueId'
 import entities from '../store/Entities'
 import { observer } from 'mobx-react-lite'
+import schedule from '../store/Schedule';
+import cache from '../global/cache'
 
-export default observer(({ state, cache, type, setCall, setReady, setValue, value, setSecond, ...props }) => {
+export default observer(({ type, ...props }) => {
 
     const setList = async (data, item, type) => {
-        setSecond(entities[type].preview || data[0]?.name)
-        setCall(data)
+        props.setSecond(entities[type].preview || data[0]?.name)
+        schedule.set('call', data)
         props.setSource(item)
+        schedule.set('isReady', true)
 
-        setReady(true)
     }
 
     const changeHandler = async (item) => {
@@ -20,13 +22,11 @@ export default observer(({ state, cache, type, setCall, setReady, setValue, valu
             'Преподаватели': 'teacher',
             'Аудитории': 'room'
         }
-
         let entity = types[type] || type
 
         if (type === 'source') {
 
-            setReady(false)
-
+            schedule.set('isReady', false)
             entity = types[item]
             const current = entities[entity] || {}
 
@@ -41,7 +41,7 @@ export default observer(({ state, cache, type, setCall, setReady, setValue, valu
             return cache.set(type, item)
         }
 
-        setValue(item)
+        props.setValue(item)
         console.log(item, type)
         entities.set(entity, 'preview', item)
         await cache.set(entity, item)
@@ -51,10 +51,10 @@ export default observer(({ state, cache, type, setCall, setReady, setValue, valu
 
     return <View style={styles.input}>
         <Picker
-            selectedValue={value}
+            selectedValue={props.value}
             onValueChange={changeHandler}>
             {
-                state.map(item => (
+                props.state.map(item => (
                     <Picker.Item key={getKey()} label={item} value={item} />
                 ))
             }

@@ -1,9 +1,11 @@
 import React from 'react';
-import {StyleSheet, Text, TouchableHighlight, View, Modal} from "react-native";
-import {Row, Rows, Table, TableWrapper} from "react-native-table-component";
-import {borderStyle, tabelStyles} from "../styles/table";
+import { StyleSheet, Text, TouchableHighlight, View, Modal } from "react-native";
+import { Row, Rows, Table, TableWrapper } from "react-native-table-component";
+import { borderStyle, tabelStyles } from "../global/table";
+import schedule from '../store/Schedule';
+import { observer } from 'mobx-react-lite'
 
-const CustomModal = ({modalVisible, moodle, setModalVisible}) => {
+const CustomModal = observer(() => {
     const tableHead = [
         'Тип',
         'Ссылка',
@@ -18,27 +20,27 @@ const CustomModal = ({modalVisible, moodle, setModalVisible}) => {
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={modalVisible}
+                visible={schedule.modalVisible}
                 hardwareAccelerated
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={() => schedule.set('modalVisible', false)}
             >
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
                         <View>
                             <Table
                                 style={styles.table}
-                                {...{borderStyle}}
+                                {...{ borderStyle }}
                             >
-                                <Row {...{flexArr}} data={ tableHead } style={styles.heads} textStyle={styles.rows} />
+                                <Row {...{ flexArr }} data={tableHead} style={styles.heads} textStyle={styles.rows} />
 
                                 <TableWrapper style={styles.wrapper}>
-                                    <Rows {...{flexArr}} data={ moodle } textStyle={styles.rows}/>
+                                    <Rows {...{ flexArr }} data={schedule.moodle} textStyle={styles.rows} />
                                 </TableWrapper>
                             </Table>
 
                             <TouchableHighlight
                                 style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-                                onPress={() => setModalVisible(false)}
+                                onPress={() => schedule.set('modalVisible', false)}
                             >
                                 <Text style={styles.textStyle}>Закрыть</Text>
                             </TouchableHighlight>
@@ -46,9 +48,9 @@ const CustomModal = ({modalVisible, moodle, setModalVisible}) => {
                     </View>
                 </View>
             </Modal>
-        </View>
+        </View >
     );
-};
+});
 
 const styles = StyleSheet.create({
     centeredView: {
