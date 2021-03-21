@@ -1,9 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableHighlight, View, Modal } from "react-native";
+import { StyleSheet, Text, TouchableHighlight, View, Modal, Linking, TouchableOpacity } from "react-native";
 import { Row, Rows, Table, TableWrapper } from "react-native-table-component";
 import { borderStyle, tabelStyles } from "../global/table";
 import schedule from '../store/Schedule';
 import { observer } from 'mobx-react-lite'
+import CustomLink from './CustomLink';
 
 const CustomModal = observer(() => {
     const tableHead = [
@@ -12,8 +13,6 @@ const CustomModal = observer(() => {
         'Дата',
     ]
     const flexArr = [.5, 1, .6]
-
-    // React.useEffect(() => console.log(moodle), [JSON.stringify(moodle)])
 
     return (
         <View style={styles.centeredView}>
@@ -26,7 +25,7 @@ const CustomModal = observer(() => {
             >
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                        <View>
+                        <View onBlur={() => console.log(1)}>
                             <Table
                                 style={styles.table}
                                 {...{ borderStyle }}
@@ -34,16 +33,26 @@ const CustomModal = observer(() => {
                                 <Row {...{ flexArr }} data={tableHead} style={styles.heads} textStyle={styles.rows} />
 
                                 <TableWrapper style={styles.wrapper}>
-                                    <Rows {...{ flexArr }} data={schedule.moodle} textStyle={styles.rows} />
+                                    <Rows {...{ flexArr }} data={schedule.moodle.map((fields) => {
+                                        return fields.map((field, i) => {
+
+                                            return i === 1 ?
+                                                <CustomLink onPress={() => Linking.openURL(field)}>
+                                                    {field}
+                                                </CustomLink>
+                                                : field
+                                        })
+                                    })} textStyle={styles.rows} />
                                 </TableWrapper>
                             </Table>
 
-                            <TouchableHighlight
-                                style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+                            <TouchableOpacity
+                                style={styles.openButton}
                                 onPress={() => schedule.set('modalVisible', false)}
+                                activeOpacity={.7}
                             >
                                 <Text style={styles.textStyle}>Закрыть</Text>
-                            </TouchableHighlight>
+                            </TouchableOpacity>
                         </View>
                     </View>
                 </View>
@@ -74,7 +83,7 @@ const styles = StyleSheet.create({
         elevation: 5
     },
     openButton: {
-        backgroundColor: "#F194FF",
+        backgroundColor: "#2196F3",
         borderRadius: 20,
         padding: 10,
         elevation: 2

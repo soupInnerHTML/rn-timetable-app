@@ -1,17 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Picker, StyleSheet, View } from "react-native";
 import getKey from 'lodash/uniqueId'
 import entities from '../store/Entities'
 import { observer } from 'mobx-react-lite'
 import schedule from '../store/Schedule';
 import cache from '../global/cache'
+import pickers from '../store/Pickers';
 
 export default observer(({ type, ...props }) => {
 
     const setList = async (data, item, type) => {
-        props.setSecond(entities[type].preview || data[0]?.name)
+        const translate = {
+            group: 'Группы',
+            teacher: 'Преподаватели',
+            room: 'Аудитории'
+        }
+
+        // console.log(entities)
+
+        if (entities[type].preview) {
+            pickers.set('second', entities[type].preview)
+        }
+        else {
+            const cached = await cache.get(translate[type])
+            pickers.set('second', cached || data[0]?.name)
+        }
+
         schedule.set('call', data)
-        props.setSource(item)
+        pickers.set('source', item)
         schedule.set('isReady', true)
 
     }
@@ -22,31 +38,47 @@ export default observer(({ type, ...props }) => {
             'Преподаватели': 'teacher',
             'Аудитории': 'room'
         }
-        let entity = types[type] || type
 
         if (type === 'source') {
-
+            console.log('source изменился')
             schedule.set('isReady', false)
-            entity = types[item]
+            let entity = types[item]
             const current = entities[entity] || {}
 
             if (current.list) {
-                return setList(current.list, item, entity)
+                setList(current.list, item, entity)
+                cache.set(type, item)
+                const a = await cache.getAll()
+                return console.log(a)
             }
 
             const response = await fetch(`https://api.ptpit.ru/${current.endpoint}?filters=start_date:dlte:2/23/2021|end_date:dgte:1/23/2021|parent:isnull`)
             const data = await response.json()
             setList(data, item, entity)
             entities.set(entity, 'list', data)
-            return cache.set(type, item)
+            cache.set(type, item)
+            const a = await cache.getAll()
+            console.log(a)
         }
+        if (type === 'date') {
+            console.log('date изменился')
+            props.setValue(item)
+            cache.set('date', item)
+        }
+        else {
+            console.log('second изменился')
+            if (entities[types[pickers.source]].list.map(e => e.name).includes(item)) {
+                props.setValue(item)
+                entities.set(types[pickers.source], 'preview', item)
 
-        props.setValue(item)
-        console.log(item, type)
-        entities.set(entity, 'preview', item)
-        await cache.set(entity, item)
-        const a = await cache.getAll()
-        console.log(a)
+                // if (entities[types[pickers.source]].list[0].name !== item) {
+                await cache.set(pickers.source, item)
+                // }
+
+                const a = await cache.getAll()
+                console.log(a)
+            }
+        }
     }
 
     return <View style={styles.input}>

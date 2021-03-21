@@ -1,4 +1,8 @@
-import { makeAutoObservable } from 'mobx'
+import { makeAutoObservable, configure } from 'mobx'
+
+configure({
+    enforceActions: "never",
+})
 
 class Entity {
     constructor(endpoint, list, preview) {

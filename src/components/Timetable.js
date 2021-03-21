@@ -1,11 +1,12 @@
 import { Row, Rows, Table } from "react-native-table-component";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Linking } from "react-native";
 import React from 'react'
 import getKey from 'lodash/uniqueId'
 import { Entypo } from '@expo/vector-icons';
 import { borderStyle, tabelStyles } from "../global/table";
 import { observer } from 'mobx-react-lite'
 import schedule from "../store/Schedule";
+import CustomLink from "./CustomLink";
 
 export default observer(() => {
     const tableHead = [
@@ -29,7 +30,20 @@ export default observer(() => {
                 <Row data={Object.keys(table).map(e => <Text style={styles.head}>{e}</Text>)} />
                 <Row data={tableHead} style={styles.heads} textStyle={styles.rows} {...{ flexArr }} />
 
-                <Rows {...{ flexArr }} data={Object.values(table)[0]} textStyle={styles.rows} />
+                <Rows {...{ flexArr }} data={Object.values(table)[0].map(fields => {
+                    return fields.map(field => {
+                        if (typeof field === 'object') {
+                            return field.moodle ?
+                                <CustomLink onPress={() => schedule.moodleActions(JSON.parse(field.moodle))}>
+                                    {field.subject_name}
+                                </CustomLink> : field.subject_name
+                        }
+
+                        else {
+                            return field
+                        }
+                    })
+                })} textStyle={styles.rows} />
             </Table>
         ))
     }
@@ -52,7 +66,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         paddingVertical: 8
     },
-    ...tabelStyles,
     info: {
         flex: 1,
         alignItems: 'center',
@@ -61,5 +74,6 @@ const styles = StyleSheet.create({
     infoMessage: {
         fontSize: 16,
         marginTop: 10,
-    }
+    },
+    ...tabelStyles,
 });
