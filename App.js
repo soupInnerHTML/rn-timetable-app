@@ -63,7 +63,13 @@ export default observer(() => {
 
                     <Button title={"Посмотреть"} onPress={() => {
                         schedule.getTimetable()
-                        cache.set('pressed', true)
+                        const {source, week, second} = pickers
+                        schedule.pressedConfig = {
+                            source, week, second
+                        }
+                        cache.set('pressed', {
+                            source, week, second
+                        })
                     }} />
 
                     {isPressed && <Timetable />}

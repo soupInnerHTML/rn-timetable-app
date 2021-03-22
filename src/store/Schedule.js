@@ -11,6 +11,7 @@ class Schedule {
     tables = []
     call = []
     isPressed = false
+    pressedConfig = {}
     isReady = false
     modalVisible = false
     moodle = []
@@ -39,14 +40,28 @@ class Schedule {
             'Аудитории': 'room'
         }
 
-        const _cache = await cache.getAll()
-        const _source = _cache.source?.value || sources[0]
-        const _week = _cache.date?.value || weeks[1]
-        const _second = _cache[_source]?.value;
+        const _cache = await cache.getAll();
+
+        const getFromCache = item => _cache.pressed?.value[item] || _cache[item]?.value
+
+        const _source = getFromCache('source') || sources[0]
+        const _week = getFromCache('date') || weeks[1]
+        const _second = getFromCache(_source);
 
         console.log(_cache);
 
-        [['week', _week], ['second', _second], ['source', _source]].forEach(items => pickers.set(...items))
+        [['week', _week], ['second', _second], ['source', _source]].forEach(items => {
+            pickers.set(...items)
+        });
+
+        [
+            ['group', _cache['Группы']],
+            ['teacher', _cache['Преподаватели']],
+            ['room', _cache['Аудитории']]
+        ].forEach(items => {
+            entities.set(items[0], 'preview', items[1]?.value || (entities[items[0]].list || [])[0])
+            // preload previews from cache or from preloaded list
+        });
 
         const response = await fetch(baseEndpoints[_source])
         const _call = await response.json()
@@ -54,7 +69,10 @@ class Schedule {
         this.call = _call
         entities.set(types[_source], 'list', _call)
 
-        _cache.pressed?.value ? this.getTimetable() : this.isReady = true
+        this.pressedConfig = _cache.pressed?.value
+        this.isPressed = !!this.pressedConfig
+
+        this.isPressed ? this.getTimetable(true) : this.isReady = true
     }
 
     moodleActions(payload) {
@@ -76,7 +94,7 @@ class Schedule {
         ])
     }
 
-    async getTimetable() {
+    async getTimetable(isPreload) {
         try {
 
             const time = [
@@ -91,9 +109,11 @@ class Schedule {
             this.isPressed = true
             this.isReady = false
 
+            const targetFrom = item => isPreload ? this.pressedConfig[item] : pickers[item]
+
             const inputs = {
-                id: this.call.find(item => item.name === (pickers.second)).id,
-                week: pickers.week.split(' - ')[0].split('.').reverse().join('-')
+                id: this.call.find(item => item.name === targetFrom('second')).id,
+                week: targetFrom('week').split(' - ')[0].split('.').reverse().join('-')
             }
 
             const paths = {
@@ -103,7 +123,7 @@ class Schedule {
             }
 
             const dates = new Set()
-            const response = await fetch(paths[pickers.source])
+            const response = await fetch(paths[targetFrom('source')])
             const json = await response.json();
             json.forEach(pair => {
                 dates.add(pair.date)
@@ -124,8 +144,9 @@ class Schedule {
                                     subject_name: pair.subject_name
                                 },
                                 pair.subgroup || '—',
-                                pair.teacher_surname && `${pair.teacher_surname} ${pair.teacher_name[0]}.${pair.teacher_secondname[0]}.`,
-                                pair.room_name
+                                pickers.source === 'Преподаватели' ? pair.group_name
+                                : pair.teacher_surname && `${pair.teacher_surname} ${pair.teacher_name[0]}.${pair.teacher_secondname[0]}.`,
+                                pickers.source === 'Аудитории' ? pair.group_name : pair.room_name
                             ]
                         })
                 }
