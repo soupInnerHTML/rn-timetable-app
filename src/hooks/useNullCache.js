@@ -1,7 +1,8 @@
-import {useEffect} from "react";
+import {useEffect} from 'react'
 import {isEmpty} from 'lodash'
+import cache from '../services/cache'
 
-export const useNullCache = (cache) => {
+export const useNullCache = () => {
     useEffect(() => {
         (async () => {
             await cache.clearAll();

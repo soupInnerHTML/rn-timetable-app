@@ -1,5 +1,5 @@
 import { Row, Rows, Table } from "react-native-table-component";
-import { StyleSheet, Text, View, TouchableOpacity, Linking } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import React, {useEffect} from 'react'
 import getKey from 'lodash/uniqueId'
 import { Entypo } from '@expo/vector-icons';
@@ -11,9 +11,9 @@ import CustomLink from "./CustomLink";
 
 export default observer(() => {
 
-    useEffect(() => {
-        console.log(pickers.source)
-    }, [pickers.source])
+    // useEffect(() => {
+    //     console.log(pickers.source)
+    // }, [pickers.source])
 
     const tableHead = [
         '#',

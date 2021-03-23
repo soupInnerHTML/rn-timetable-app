@@ -2,10 +2,12 @@ import 'dayjs/locale/ru'
 import { makeAutoObservable } from 'mobx'
 import pickers from '../store/Pickers'
 import dayjs from 'dayjs'
-import cache from '../global/cache'
+import cache from '../services/cache'
 import sources from '../global/sources'
 import weeks from '../global/weeks'
 import entities from '../store/Entities'
+import NetInfo from "@react-native-community/netinfo";
+import {Alert} from "react-native";
 
 class Schedule {
     tables = []
@@ -73,6 +75,23 @@ class Schedule {
         this.isPressed = !!this.pressedConfig
 
         this.isPressed ? this.getTimetable(true) : this.isReady = true
+    }
+
+    prep = async () => {
+        const netState = await NetInfo.fetch()
+
+        if(!netState.isConnected) {
+            Alert.alert('Ошибка сети', 'Нет подключения к интернету')
+        }
+
+        this.getTimetable()
+        const {source, week, second} = pickers
+        this.pressedConfig = {
+            source, week, second
+        }
+        cache.set('pressed', {
+            source, week, second
+        })
     }
 
     moodleActions(payload) {
