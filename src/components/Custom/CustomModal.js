@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableHighlight, View, Modal, Linking, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableWithoutFeedback, View, Modal, Linking, TouchableOpacity } from "react-native";
 import { Row, Rows, Table, TableWrapper } from "react-native-table-component";
-import { borderStyle, tabelStyles } from "../global/table";
-import schedule from '../store/Schedule';
+import { borderStyle, tabelStyles } from "../../global/table";
+import schedule from '../../store/Schedule';
 import { observer } from 'mobx-react-lite'
 import CustomLink from './CustomLink';
 
@@ -23,9 +23,13 @@ const CustomModal = observer(() => {
                 hardwareAccelerated
                 onRequestClose={() => schedule.set('modalVisible', false)}
             >
-                <View style={styles.centeredView}>
-                    <View style={styles.modalView}>
-                        <View onBlur={() => console.log(1)}>
+                <TouchableOpacity
+                    style={styles.centeredView}
+                    activeOpacity={1}
+                    onPressOut={() => schedule.set('modalVisible', false)}
+                >
+                    <TouchableWithoutFeedback>
+                        <View style={styles.modalView}>
                             <Table
                                 style={styles.table}
                                 {...{ borderStyle }}
@@ -54,8 +58,8 @@ const CustomModal = observer(() => {
                                 <Text style={styles.textStyle}>Закрыть</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
-                </View>
+                    </TouchableWithoutFeedback>
+                </TouchableOpacity  >
             </Modal>
         </View >
     );
@@ -66,7 +70,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        margin: 6
+        margin: 6,
     },
     modalView: {
         width: '100%',

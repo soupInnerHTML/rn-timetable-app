@@ -2,7 +2,7 @@ import React from 'react';
 import { Picker, StyleSheet, View } from "react-native";
 import getKey from 'lodash/uniqueId'
 import { observer } from 'mobx-react-lite'
-import changePickerHandler from '../services/changePickerHandler'
+import changePickerHandler from '../../services/changePickerHandler'
 
 export default observer(({ type, ...props }) => {
 

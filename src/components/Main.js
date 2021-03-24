@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     StyleSheet,
     ScrollView,
@@ -6,61 +6,53 @@ import {
     SafeAreaView,
     View,
     ActivityIndicator,
-    Text,
-    Animated
+    RefreshControl
 } from 'react-native';
 import { useNullCache } from "../hooks/useNullCache";
 import { observer } from 'mobx-react-lite'
-import CustomPicker from "../components/CustomPicker";
+import CustomPicker from "./Custom/CustomPicker";
 import Timetable from "../components/Timetable";
-import CustomModal from "../components/CustomModal";
+import CustomModal from "./Custom/CustomModal";
 import schedule from '../store/Schedule';
 import pickers from '../store/Pickers';
-import sources from '../global/sources'
 import weeks from '../global/weeks'
-import CustomStatusBar from "../components/CustomStatusBar";
-import NetInfo from "@react-native-community/netinfo";
+import CustomStatusBar from "./Custom/CustomStatusBar";
+import NetworkStatus from "./Service/NetworkStatus";
 
 export default observer(() => {
 
-    const { call, isPressed, isReady } = schedule
+    const { call, isPressed, isReady, sources } = schedule
     const { week, second, source, sourceType } = pickers
 
-    const [isConnected, setIsConnected] = useState(true)
+    const [refreshing, setRefreshing] = useState(false);
 
-    const animHeightConn = useRef(new Animated.Value(0)).current
-
+    const onRefresh = async () => {
+        setRefreshing(true)
+        await schedule.init()
+        setRefreshing(false)
+    }
 
     useEffect(() => {
-        NetInfo.addEventListener(state => {
-            console.log("Connection type", state.type);
-            console.log("Is connected?", state.isConnected);
-
-            Animated.timing(animHeightConn, {
-                toValue: 18,
-                duration: 300,
-            }).start();
-
-            setIsConnected(state.isConnected)
-        });
-
         schedule.init()
     }, [])
 
     const set = entity => value => pickers.set(entity, value)
 
     // dev check null cache cases
-    // useNullCache()
+    // () === false, (1) === true
+    useNullCache()
     // TODO delete in production or refactor
 
     return (
         <SafeAreaView style={styles.container}>
 
-            <View style={{...styles.noConn, height: animHeightConn}}>
-                <Text style={styles.noConnInfo}>Нет соединения. Данные могут отображаться неправильно</Text>
-            </View>
+            <NetworkStatus/>
 
-            <ScrollView>
+            <ScrollView refreshControl={
+                <RefreshControl
+                    {...{refreshing, onRefresh}}
+                />
+            }>
                 <View style={[styles.inner, isReady ? {} : styles.hide]}>
                     <CustomStatusBar/>
 

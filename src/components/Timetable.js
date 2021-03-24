@@ -1,29 +1,26 @@
 import { Row, Rows, Table } from "react-native-table-component";
 import { StyleSheet, Text, View } from "react-native";
-import React, {useEffect} from 'react'
+import React from 'react'
 import getKey from 'lodash/uniqueId'
 import { Entypo } from '@expo/vector-icons';
 import { borderStyle, tabelStyles } from "../global/table";
 import { observer } from 'mobx-react-lite'
 import schedule from "../store/Schedule";
-import pickers from "../store/Pickers";
-import CustomLink from "./CustomLink";
+import CustomLink from "./Custom/CustomLink";
 
 export default observer(() => {
 
-    // useEffect(() => {
-    //     console.log(pickers.source)
-    // }, [pickers.source])
+    const source = schedule.pressedConfig?.source
 
     const tableHead = [
         '#',
         'Время',
         'Предмет',
         'Подгр.',
-        schedule.pressedConfig.source === 'Преподаватели' ? 'Группа' : 'Препод.',
-        schedule.pressedConfig.source === 'Аудитории' ? 'Группа' : 'Каб.'
+        source === 'Преподаватели' ? 'Группа' : 'Препод.',
+        source === 'Аудитории' ? 'Группа' : 'Каб.'
     ]
-    const flexArr = [.4, 1, 2, 1, 1.3, schedule.pressedConfig.source === 'Аудитории' ? 1.2 : .7]
+    const flexArr = [.4, 1, 2, 1, 1.3, source === 'Аудитории' ? 1.2 : .7]
     const { tables } = schedule
 
     if (tables.length) {

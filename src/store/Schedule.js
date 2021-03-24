@@ -6,8 +6,6 @@ import cache from '../services/cache'
 import sources from '../global/sources'
 import weeks from '../global/weeks'
 import entities from '../store/Entities'
-import NetInfo from "@react-native-community/netinfo";
-import {Alert} from "react-native";
 
 class Schedule {
     tables = []
@@ -15,14 +13,18 @@ class Schedule {
     isPressed = false
     pressedConfig = {}
     isReady = false
+    isInit = false
     modalVisible = false
     moodle = []
+    sources = ['Группы', 'Преподаватели', 'Аудитории']
 
     set(item, data) {
         this[item] = data
     }
 
     async init() {
+
+        this.isReady = false
 
         // clean date cache on sunday
         if (dayjs().format('dddd') === 'Sunday') {
@@ -74,16 +76,17 @@ class Schedule {
         this.pressedConfig = _cache.pressed?.value
         this.isPressed = !!this.pressedConfig
 
-        this.isPressed ? this.getTimetable(true) : this.isReady = true
+        if (this.isPressed) {
+            await this.getTimetable(true)
+        }
+        else {
+            this.isReady = true
+        }
+
+        setTimeout(() => this.isInit = true, 500)
     }
 
     prep = async () => {
-        const netState = await NetInfo.fetch()
-
-        if(!netState.isConnected) {
-            Alert.alert('Ошибка сети', 'Нет подключения к интернету')
-        }
-
         this.getTimetable()
         const {source, week, second} = pickers
         this.pressedConfig = {
@@ -92,6 +95,8 @@ class Schedule {
         cache.set('pressed', {
             source, week, second
         })
+
+        cache.set(source, second)
     }
 
     moodleActions(payload) {

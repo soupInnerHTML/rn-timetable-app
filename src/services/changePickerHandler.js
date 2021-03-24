@@ -83,3 +83,7 @@ const changePickerHandler = (type, setValue) => async (item) => {
 }
 
 export default changePickerHandler
+
+//TODO improve select & load logic
+//Например: преподаватель вообще не кэшируется в `Преподаватели`
+// при просмотре его расписания из-за __защиты__
