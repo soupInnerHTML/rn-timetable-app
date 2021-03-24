@@ -4,6 +4,8 @@ configure({
     enforceActions: "never",
 })
 
+//TODO rename class Entity & Entities
+
 class Entity {
     constructor(endpoint, list, preview) {
         this.list = list

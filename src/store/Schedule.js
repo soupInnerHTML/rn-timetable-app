@@ -6,6 +6,7 @@ import cache from '../services/cache'
 import sources from '../global/sources'
 import weeks from '../global/weeks'
 import entities from '../store/Entities'
+import types from '../global/pickerTypes'
 
 class Schedule {
     tables = []
@@ -36,12 +37,6 @@ class Schedule {
             'Группы': 'https://api.ptpit.ru/groups?filters=start_date:dlte:2/23/2021|end_date:dgte:1/23/2021|parent:isnull',
             'Преподаватели': 'https://api.ptpit.ru/persons/teachers',
             'Аудитории': 'https://api.ptpit.ru/rooms'
-        }
-
-        const types = {
-            'Группы': 'group',
-            'Преподаватели': 'teacher',
-            'Аудитории': 'room'
         }
 
         const _cache = await cache.getAll();
@@ -153,7 +148,7 @@ class Schedule {
                 dates.add(pair.date)
             })
 
-            const tables = Array.from(dates).map(date => {
+            this.tables = Array.from(dates).map(date => {
                 const dayOfWeek = dayjs(date).locale('ru').format('dddd')
                 const parseDate = `${dayOfWeek[0].toUpperCase() + dayOfWeek.slice(1)} (${dayjs(date).format('DD.MM')})`
 
@@ -176,7 +171,6 @@ class Schedule {
                 }
             })
 
-            this.tables = tables
             this.isReady = true
         }
         catch (e) {

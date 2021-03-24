@@ -10,7 +10,7 @@ import CustomLink from "./Custom/CustomLink";
 
 export default observer(() => {
 
-    const source = schedule.pressedConfig?.source
+    const {source} = schedule.pressedConfig || {}
 
     const tableHead = [
         '#',
@@ -30,7 +30,7 @@ export default observer(() => {
                 {...{ borderStyle }}
                 key={getKey()}
             >
-                <Row data={Object.keys(table).map(e => <Text style={styles.head}>{e}</Text>)} />
+                <Row data={Object.keys(table).map(row => <Text style={styles.head}>{row}</Text>)} />
                 <Row data={tableHead} style={styles.heads} textStyle={styles.rows} {...{ flexArr }} />
 
                 <Rows {...{ flexArr }} data={Object.values(table)[0].map(fields => {

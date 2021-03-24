@@ -11,4 +11,8 @@ web-build/
 
 # macOS
 .DS_Store
+
+# custom
+.idea
 .vscode
+.yarn-error.log

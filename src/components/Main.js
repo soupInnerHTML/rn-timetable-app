@@ -41,7 +41,7 @@ export default observer(() => {
     // dev check null cache cases
     // () === false, (1) === true
     useNullCache()
-    // TODO delete in production or refactor
+    // TODO delete in production or integrate into ui
 
     return (
         <SafeAreaView style={styles.container}>
