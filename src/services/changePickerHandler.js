@@ -3,6 +3,8 @@ import pickers from "../store/Pickers";
 import cache from "./cache";
 import schedule from "../store/Schedule";
 import types from '../global/pickerTypes'
+import requestFilters from "../global/requestFilters";
+import getListOf from "../utils/getListOf";
 
 const setList = async (data, item, type) => {
 
@@ -13,7 +15,7 @@ const setList = async (data, item, type) => {
         room: 'Аудитории'
     }
 
-    console.log(entities)
+    // console.log(entities)
 
     if (entities[type].preview) {
         pickers.set('second', entities[type].preview)
@@ -40,17 +42,22 @@ const changePickerHandler = (type, setValue) => async (item) => {
             const current = entities[entity] || {}
 
             if (current.list) {
-                setList(current.list, item, entity).then()
+                setList(current.list, item, entity)
             }
 
-            const response = await fetch(`https://api.ptpit.ru/${current.endpoint}?filters=start_date:dlte:2/23/2021|end_date:dgte:1/23/2021|parent:isnull`)
-            const data = await response.json()
-            setList(data, item, entity).then()
-            entities.set(entity, 'list', data)
-            const a = await cache.getAll()
-            console.log(a)
+            else {
+                const response = await fetch(`https://api.ptpit.ru/${current.endpoint}${requestFilters}`)
+                const data = await response.json()
+                setList(data, item, entity).then()
+                entities.set(entity, 'list', data)
 
-            console.log(entities)
+                await cache.set(getListOf(item), data)
+                const a = await cache.getAll()
+
+                console.log(a)
+                console.log(entities)
+            }
+
             break
 
         case 'date': return setValue(item)

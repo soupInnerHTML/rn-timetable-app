@@ -7,6 +7,8 @@ import sources from '../global/sources'
 import weeks from '../global/weeks'
 import entities from '../store/Entities'
 import types from '../global/pickerTypes'
+import requestFilters from "../global/requestFilters";
+import getListOf from "../utils/getListOf";
 
 class Schedule {
     tables = []
@@ -17,7 +19,7 @@ class Schedule {
     isInit = false
     modalVisible = false
     moodle = []
-    sources = ['Группы', 'Преподаватели', 'Аудитории']
+    sources = [...sources] //from import
 
     set(item, data) {
         this[item] = data
@@ -34,7 +36,7 @@ class Schedule {
         }
 
         const baseEndpoints = {
-            'Группы': 'https://api.ptpit.ru/groups?filters=start_date:dlte:2/23/2021|end_date:dgte:1/23/2021|parent:isnull',
+            'Группы': 'https://api.ptpit.ru/groups' + requestFilters,
             'Преподаватели': 'https://api.ptpit.ru/persons/teachers',
             'Аудитории': 'https://api.ptpit.ru/rooms'
         }
@@ -62,11 +64,46 @@ class Schedule {
             // preload previews from cache or from preloaded list
         });
 
-        const response = await fetch(baseEndpoints[_source])
-        const _call = await response.json()
+        //is some list expired?
+        sources.forEach(async type => {
+            const listOf = getListOf(type)
+            const listOfFromCache = _cache[listOf] || {}
 
-        this.call = _call
-        entities.set(types[_source], 'list', _call)
+            if(dayjs().diff(listOfFromCache.created, 'day') >= 7) {
+                cache.remove(listOf)
+                console.log(type + ' is expired')
+            }
+            else {
+                console.log(type + ' is not expired')
+                entities.set(types[type],'list', listOfFromCache.value)
+            }
+        })
+
+        // for clicked source
+        const listOf = getListOf(_source)
+        const listOfFromCache = _cache[listOf] || {}
+
+        const fetchList = async () => {
+            console.log('fetch list')
+            const response = await fetch(baseEndpoints[_source])
+            const _call = await response.json()
+
+            this.call = _call
+            entities.set(types[_source], 'list', _call)
+
+            cache.set(listOf, _call).then()
+        }
+
+        const list = listOfFromCache.value
+
+        if(list) {
+            this.call = list
+            entities.set(types[_source], 'list', list)
+        }
+
+        else {
+            await fetchList()
+        }
 
         this.pressedConfig = _cache.pressed?.value
         this.isPressed = !!this.pressedConfig

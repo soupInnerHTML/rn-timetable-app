@@ -1,6 +1,7 @@
 node_modules/**/*
 .expo/*
 npm-debug.*
+*.log
 *.jks
 *.p8
 *.p12
@@ -12,7 +13,6 @@ web-build/
 # macOS
 .DS_Store
 
-# custom
+# configs
 .idea
 .vscode
-.yarn-error.log

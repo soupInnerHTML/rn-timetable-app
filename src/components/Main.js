@@ -40,7 +40,7 @@ export default observer(() => {
 
     // dev check null cache cases
     // () === false, (1) === true
-    useNullCache()
+    useNullCache(1)
     // TODO delete in production or integrate into ui
 
     return (
