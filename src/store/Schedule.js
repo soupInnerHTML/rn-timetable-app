@@ -1,22 +1,21 @@
 import 'dayjs/locale/ru'
 import { makeAutoObservable } from 'mobx'
-import pickers from '../store/Pickers'
 import dayjs from 'dayjs'
 import cache from '../services/cache'
 import sources from '../global/sources'
 import weeks from '../global/weeks'
-import entities from '../store/Entities'
 import types from '../global/pickerTypes'
 import requestFilters from "../global/requestFilters";
 import getListOf from "../utils/getListOf";
+import entities from './Entities'
+import pickers from './Pickers'
+import app from './App'
 
 class Schedule {
     tables = []
     call = []
     isPressed = false
     pressedConfig = {}
-    isReady = false
-    isInit = false
     modalVisible = false
     moodle = []
     sources = [...sources] //from import
@@ -27,13 +26,7 @@ class Schedule {
 
     async init() {
 
-        this.isReady = false
-
-        // clean date cache on sunday
-        if (dayjs().format('dddd') === 'Sunday') {
-            console.log('clean date cache on sunday')
-            await cache.remove('date')
-        }
+        app.isReady = false
 
         const baseEndpoints = {
             'Группы': 'https://api.ptpit.ru/groups' + requestFilters,
@@ -46,8 +39,17 @@ class Schedule {
         const getFromCache = item => _cache.pressed?.value[item] || _cache[item]?.value
 
         const _source = getFromCache('source') || sources[0]
-        const _week = getFromCache('date') || weeks[1]
         const _second = getFromCache(_source);
+        let _week = getFromCache('week') || weeks[1]
+
+        // clean date cache on sunday
+        if (dayjs().format('dddd') === 'Monday' && _week) {
+            console.log('clean date cache on sunday')
+            await cache.remove('pressed')
+            await cache.set(_source, _second)
+
+            _week = weeks[1]
+        }
 
         console.log(_cache);
 
@@ -112,10 +114,10 @@ class Schedule {
             await this.getTimetable(true)
         }
         else {
-            this.isReady = true
+            app.isReady = true
         }
 
-        setTimeout(() => this.isInit = true, 500)
+        setTimeout(() => app.isInit = true, 500)
     }
 
     prep = async () => {
@@ -163,7 +165,7 @@ class Schedule {
             ]
 
             this.isPressed = true
-            this.isReady = false
+            app.isReady = false
 
             const targetFrom = item => isPreload ? this.pressedConfig[item] : pickers[item]
 
@@ -208,11 +210,11 @@ class Schedule {
                 }
             })
 
-            this.isReady = true
+            app.isReady = true
         }
         catch (e) {
             console.error(e)
-            this.isReady = true
+            app.isReady = true
         }
 
     }

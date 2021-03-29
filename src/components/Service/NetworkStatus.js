@@ -5,10 +5,12 @@ import schedule from '../../store/Schedule';
 import {observer} from "mobx-react-lite";
 import {runInAction} from "mobx";
 import cache from '../../services/cache'
+import app from '../../store/App'
+import NetworkErrorScreen from "./NetworkErrorScreen";
 
 const NetworkStatus = observer(() => {
     const [isConnected, setIsConnected] = useState(true)
-    const animHeightConn = useRef(new Animated.Value(0)).current;
+    const animHeightConn = useRef(new Animated.Value(23)).current;
 
     useEffect(() => {
         NetInfo.addEventListener(({isConnected}) => {
@@ -21,7 +23,9 @@ const NetworkStatus = observer(() => {
                 useNativeDriver: true
             }).start();
 
+
             if(isConnected) {
+                app.isDisconnectWithoutCache = false
                 runInAction(() => schedule.sources = ['Группы', 'Преподаватели', 'Аудитории'])
             }
 
@@ -31,6 +35,10 @@ const NetworkStatus = observer(() => {
                         schedule.sources = schedule.sources.filter(source => (
                             Object.keys(_cache).includes(source)
                         ))
+
+                        if(!_cache.pressed) {
+                            app.isDisconnectWithoutCache = true
+                        }
                     })
                 })
             }
@@ -40,19 +48,22 @@ const NetworkStatus = observer(() => {
     }, [])
 
     return (
-        <Animated.View style={{
-            ...styles.noConn,
-            opacity: Number(schedule.isInit), // 0 || 1
-            translateY: animHeightConn,
-            backgroundColor: isConnected ? '#28A745' : '#D93025' //green or red,
-        }}>
-            <Text style={styles.noConnInfo}>
-                {isConnected ?
-                    'Подключено' :
-                    'Нет соединения. Доступны только кэшированные данные'
-                }
-            </Text>
-        </Animated.View>
+        <>
+            <Animated.View style={{
+                ...styles.noConn,
+                translateY: app.isInit ? animHeightConn : 23, // 23 === hide, 5 === show
+                backgroundColor: isConnected ? '#28A745' : '#D93025' //green or red,
+            }}>
+                <Text style={styles.noConnInfo}>
+                    {isConnected ?
+                        'Подключено' :
+                        'Нет соединения' + (!app.isDisconnectWithoutCache ? '. Доступны только кэшированные данные' : '')
+                    }
+                </Text>
+            </Animated.View>
+
+            {app.isDisconnectWithoutCache && <NetworkErrorScreen/> }
+        </>
     );
 });
 

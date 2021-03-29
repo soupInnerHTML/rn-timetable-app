@@ -5,6 +5,7 @@ import schedule from "../store/Schedule";
 import types from '../global/pickerTypes'
 import requestFilters from "../global/requestFilters";
 import getListOf from "../utils/getListOf";
+import app from '../store/App'
 
 const setList = async (data, item, type) => {
 
@@ -30,14 +31,14 @@ const setList = async (data, item, type) => {
 
     schedule.set('call', data)
     pickers.set('source', item)
-    schedule.set('isReady', true)
+    app.setReady(true)
 
 }
 
 const changePickerHandler = (type, setValue) => async (item) => {
     switch (type) {
         case 'source':
-            schedule.set('isReady', false)
+            app.setReady(false)
             let entity = types[item]
             const current = entities[entity] || {}
 

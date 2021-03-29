@@ -1,12 +1,10 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {
     StyleSheet,
-    ScrollView,
     Button,
     SafeAreaView,
     View,
     ActivityIndicator,
-    RefreshControl
 } from 'react-native';
 import { useNullCache } from "../hooks/useNullCache";
 import { observer } from 'mobx-react-lite'
@@ -15,22 +13,17 @@ import Timetable from "../components/Timetable";
 import CustomModal from "./Custom/CustomModal";
 import schedule from '../store/Schedule';
 import pickers from '../store/Pickers';
+import app from '../store/App'
 import weeks from '../global/weeks'
 import CustomStatusBar from "./Custom/CustomStatusBar";
 import NetworkStatus from "./Service/NetworkStatus";
+import ScrollViewWithRefresh from "./Custom/ScrollViewWithRefresh";
 
 export default observer(() => {
 
-    const { call, isPressed, isReady, sources } = schedule
+    const { call, isPressed, sources } = schedule
     const { week, second, source, sourceType } = pickers
-
-    const [refreshing, setRefreshing] = useState(false);
-
-    const onRefresh = async () => {
-        setRefreshing(true)
-        await schedule.init()
-        setRefreshing(false)
-    }
+    const { isReady, isHandReload } = app
 
     useEffect(() => {
         schedule.init()
@@ -40,21 +33,18 @@ export default observer(() => {
 
     // dev check null cache cases
     // () === false, (1) === true
-    useNullCache(1)
-    // TODO delete in production or integrate into ui
+    useNullCache()
+    // TODO delete in production
 
     return (
         <SafeAreaView style={styles.container}>
 
             <NetworkStatus/>
+            <CustomStatusBar/>
 
-            <ScrollView refreshControl={
-                <RefreshControl
-                    {...{refreshing, onRefresh}}
-                />
-            }>
+            <ScrollViewWithRefresh>
+
                 <View style={[styles.inner, isReady ? {} : styles.hide]}>
-                    <CustomStatusBar/>
 
                     <CustomPicker
                         state={weeks}
@@ -84,12 +74,11 @@ export default observer(() => {
                     <CustomModal />
                 </View>
 
-                <View style={[styles.loader, isReady ? styles.hide : {}]}>
-                    <CustomStatusBar/>
+                <View style={[styles.loader, isReady || isHandReload ? styles.hide : {}]}>
                     <ActivityIndicator size="large" color="#2999F2" />
                 </View>
 
-            </ScrollView>
+            </ScrollViewWithRefresh>
         </SafeAreaView>
     );
 })
