@@ -31,10 +31,9 @@ export default observer(() => {
 
     const set = entity => value => pickers.set(entity, value)
 
-    // dev check null cache cases
+    // DEV check null cache cases
     // () === false, (1) === true
     useNullCache()
-    // TODO delete in production
 
     return (
         <SafeAreaView style={styles.container}>

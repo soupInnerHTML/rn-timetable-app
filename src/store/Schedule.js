@@ -42,13 +42,21 @@ class Schedule {
         const _second = getFromCache(_source);
         let _week = getFromCache('week') || weeks[1]
 
-        // clean date cache on sunday
-        if (dayjs().format('dddd') === 'Monday' && _week) {
-            console.log('clean date cache on sunday')
+        const dayOfWeek = dayjs().format('dddd')
+
+        // switch week
+        if (dayOfWeek === 'Sunday' && _week && !_cache.isClearedOnSunday) {
+            console.log('clean date cache on Sunday')
             await cache.remove('pressed')
             await cache.set(_source, _second)
 
             _week = weeks[1]
+
+            cache.set('isClearedOnSunday', true)
+        }
+
+        if(dayOfWeek !== 'Sunday') {
+            cache.remove('isClearedOnSunday')
         }
 
         console.log(_cache);
@@ -67,7 +75,7 @@ class Schedule {
         });
 
         //is some list expired?
-        sources.forEach(async type => {
+        sources.forEach(type => {
             const listOf = getListOf(type)
             const listOfFromCache = _cache[listOf] || {}
 

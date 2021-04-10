@@ -36,10 +36,17 @@ export default observer(() => {
                 <Rows {...{ flexArr }} data={Object.values(table)[0].map(fields => {
                     return fields.map(field => {
                         if (typeof field === 'object') {
-                            return field.moodle ?
-                                <CustomLink onPress={() => schedule.moodleActions(JSON.parse(field.moodle))}>
-                                    {field.subject_name}
-                                </CustomLink> : field.subject_name
+
+                            if(field?.moodle) {
+                                return (
+                                    <CustomLink onPress={() => schedule.moodleActions(JSON.parse(field.moodle))}>
+                                        {field.subject_name}
+                                    </CustomLink>
+                                )
+                            }
+                            else {
+                                return field?.subject_name
+                            }
                         }
 
                         else {
