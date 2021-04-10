@@ -4,4 +4,6 @@
 - `npm start` — Запустить Metro Server
 - `npm android / npm start -> затем нажать "a"` — Запустить приложение под Android девайс / эмулятор
 
-актуальный .apk файл можно найти [здесь](https://github.com/soupInnerHTML/rn-timetable-app/releases)
+Для yarn те же команды. Например: `yarn install`
+
+Актуальный .apk файл можно найти [здесь](https://github.com/soupInnerHTML/rn-timetable-app/releases)
