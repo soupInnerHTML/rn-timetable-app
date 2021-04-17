@@ -14,16 +14,13 @@ import CustomModal from "./Custom/CustomModal";
 import schedule from '../store/Schedule';
 import pickers from '../store/Pickers';
 import app from '../store/App'
-import weeks from '../global/weeks'
 import CustomStatusBar from "./Custom/CustomStatusBar";
 import NetworkStatus from "./Service/NetworkStatus";
 import ScrollViewWithRefresh from "./Custom/ScrollViewWithRefresh";
-import entities from "../store/Entities";
-import cache from "../services/cache";
 
 export default observer(() => {
 
-    const { call, isPressed, sources } = schedule
+    const { call, isPressed, sources, weeks } = schedule
     const { week, second, source, sourceType } = pickers
     const { isReady, isHandReload } = app
 
@@ -68,7 +65,7 @@ export default observer(() => {
                         value={source}
                     />
 
-                    <Button title={"Посмотреть"} onPress={schedule.prep} />
+                    <Button title={"Посмотреть"} disabled={app.isDisconnect} onPress={schedule.prep} />
 
                     {isPressed && <Timetable />}
 

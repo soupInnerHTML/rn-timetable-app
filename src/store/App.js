@@ -4,6 +4,7 @@ class App {
     isReady = false
     isHandReload = false
     isInit = false
+    isDisconnect = false
     isDisconnectWithoutCache = false
 
     setReady(flag) {

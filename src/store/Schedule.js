@@ -19,6 +19,7 @@ class Schedule {
     modalVisible = false
     moodle = []
     sources = [...sources] //from import
+    weeks = [...weeks] //from import
 
     set(item, data) {
         this[item] = data

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, StyleSheet, Text} from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 import schedule from '../../store/Schedule';
@@ -6,19 +6,20 @@ import {observer} from "mobx-react-lite";
 import {runInAction} from "mobx";
 import cache from '../../services/cache'
 import app from '../../store/App'
-import entities from '../../store/Entities'
 import NetworkErrorScreen from "./NetworkErrorScreen";
 
 const NetworkStatus = observer(() => {
-    const [isConnected, setIsConnected] = useState(true)
-    const [listsMemo, ] = useState(entities.all.map(e => e.list))
+
+    const scheduleMemo = useMemo(() => (
+        [schedule.weeks, schedule.call, schedule.sources]
+    ), [schedule.call.length > 0])
 
     const animHeightConn = useRef(new Animated.Value(23)).current;
 
     useEffect(() => {
         NetInfo.addEventListener(({isConnected}) => {
 
-            setIsConnected(isConnected)
+            runInAction(() => app.isDisconnect = !isConnected)
 
             Animated.spring(animHeightConn, {
                 toValue: isConnected ? 23 : 5,
@@ -27,14 +28,7 @@ const NetworkStatus = observer(() => {
             }).start();
 
 
-            if(isConnected) {
-                app.isDisconnectWithoutCache = false
-                runInAction(() => schedule.sources = ['Группы', 'Преподаватели', 'Аудитории'])
-                entities.all.forEach((e, i) => e.list = listsMemo[i])
-
-            }
-
-            else {
+            if(app.isDisconnect) {
                 cache.getAll().then(_cache => {
                     if(!_cache.pressed) {
                         return app.isDisconnectWithoutCache = true
@@ -42,29 +36,24 @@ const NetworkStatus = observer(() => {
 
                     runInAction(() => {
 
-                        schedule.sources = schedule.sources.filter(source => (
-                            Object.keys(_cache).includes(source)
-                        ))
+                        const item = _cache.pressed.value
 
-                        let isInCache = (e) => (
-                            Object.values(_cache).map(c => Object.values(c)[1]).includes(e.name)
-                        );
-
-                        console.log('__onNetworkErrorEarly__', entities.teacher.list)
-
-                        schedule.call = schedule.call.filter(e => isInCache(e));
-
-                        // entities.all.forEach(e => e.list ? e.list = e.list.filter(e => isInCache(e)) : '')
-
-                        entities.teacher.list = [{name: _cache['Преподаватели'].value}]
-                        entities.group.list = [{name: _cache['Группы'].value}]
-                        entities.room.list = [{name: _cache['Аудитории'].value}]
+                        schedule.weeks = [item.week]
+                        schedule.call = [{name: item.second}]
+                        schedule.sources = [item.source]
 
 
-                        // console.log('__onNetworkError__', entities.all.map(e => e.list))
+
                     })
                 })
             }
+
+
+            else {
+                app.isDisconnectWithoutCache = false;
+                [schedule.weeks, schedule.call, schedule.sources] = scheduleMemo.slice(0, 3)
+            }
+
 
 
         });
@@ -75,12 +64,12 @@ const NetworkStatus = observer(() => {
             <Animated.View style={{
                 ...styles.noConn,
                 translateY: app.isInit ? animHeightConn : 23, // 23 === hide, 5 === show
-                backgroundColor: isConnected ? '#28A745' : '#D93025' //green or red,
+                backgroundColor: !app.isDisconnect ? '#28A745' : '#D93025' //green or red,
             }}>
                 <Text style={styles.noConnInfo}>
-                    {isConnected ?
-                        'Подключено' :
+                    {app.isDisconnect ?
                         'Нет соединения' + (!app.isDisconnectWithoutCache ? '. Доступны только кэшированные данные' : '')
+                        : 'Подключено'
                     }
                 </Text>
             </Animated.View>
