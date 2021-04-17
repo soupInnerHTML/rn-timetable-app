@@ -16,8 +16,6 @@ const setList = async (data, item, type) => {
         room: 'Аудитории'
     }
 
-    // console.log(entities)
-
     if (entities[type].preview) {
         pickers.set('second', entities[type].preview)
     }
@@ -32,7 +30,6 @@ const setList = async (data, item, type) => {
     schedule.set('call', data)
     pickers.set('source', item)
     app.setReady(true)
-
 }
 
 const changePickerHandler = (type, setValue) => async (item) => {
@@ -49,14 +46,14 @@ const changePickerHandler = (type, setValue) => async (item) => {
             else {
                 const response = await fetch(`https://api.ptpit.ru/${current.endpoint}${requestFilters}`)
                 const data = await response.json()
-                setList(data, item, entity).then()
+                setList(data, item, entity)
                 entities.set(entity, 'list', data)
 
                 await cache.set(getListOf(item), data)
-                const a = await cache.getAll()
+                // const a = await cache.getAll()
 
-                console.log(a)
-                console.log(entities)
+                // console.log(a)
+                // console.log(entities)
             }
 
             break

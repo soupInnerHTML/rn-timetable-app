@@ -6,10 +6,13 @@ import {observer} from "mobx-react-lite";
 import {runInAction} from "mobx";
 import cache from '../../services/cache'
 import app from '../../store/App'
+import entities from '../../store/Entities'
 import NetworkErrorScreen from "./NetworkErrorScreen";
 
 const NetworkStatus = observer(() => {
     const [isConnected, setIsConnected] = useState(true)
+    const [listsMemo, ] = useState(entities.all.map(e => e.list))
+
     const animHeightConn = useRef(new Animated.Value(23)).current;
 
     useEffect(() => {
@@ -27,18 +30,38 @@ const NetworkStatus = observer(() => {
             if(isConnected) {
                 app.isDisconnectWithoutCache = false
                 runInAction(() => schedule.sources = ['Группы', 'Преподаватели', 'Аудитории'])
+                entities.all.forEach((e, i) => e.list = listsMemo[i])
+
             }
 
             else {
                 cache.getAll().then(_cache => {
+                    if(!_cache.pressed) {
+                        return app.isDisconnectWithoutCache = true
+                    }
+
                     runInAction(() => {
+
                         schedule.sources = schedule.sources.filter(source => (
                             Object.keys(_cache).includes(source)
                         ))
 
-                        if(!_cache.pressed) {
-                            app.isDisconnectWithoutCache = true
-                        }
+                        let isInCache = (e) => (
+                            Object.values(_cache).map(c => Object.values(c)[1]).includes(e.name)
+                        );
+
+                        console.log('__onNetworkErrorEarly__', entities.teacher.list)
+
+                        schedule.call = schedule.call.filter(e => isInCache(e));
+
+                        // entities.all.forEach(e => e.list ? e.list = e.list.filter(e => isInCache(e)) : '')
+
+                        entities.teacher.list = [{name: _cache['Преподаватели'].value}]
+                        entities.group.list = [{name: _cache['Группы'].value}]
+                        entities.room.list = [{name: _cache['Аудитории'].value}]
+
+
+                        // console.log('__onNetworkError__', entities.all.map(e => e.list))
                     })
                 })
             }

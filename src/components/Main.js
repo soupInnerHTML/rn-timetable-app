@@ -18,6 +18,8 @@ import weeks from '../global/weeks'
 import CustomStatusBar from "./Custom/CustomStatusBar";
 import NetworkStatus from "./Service/NetworkStatus";
 import ScrollViewWithRefresh from "./Custom/ScrollViewWithRefresh";
+import entities from "../store/Entities";
+import cache from "../services/cache";
 
 export default observer(() => {
 

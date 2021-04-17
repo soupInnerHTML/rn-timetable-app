@@ -36,6 +36,8 @@ class Schedule {
 
         const _cache = await cache.getAll();
 
+        console.log(Object.values(_cache).map(c => Object.values(c)[1]))
+
         const getFromCache = item => _cache.pressed?.value[item] || _cache[item]?.value
 
         const _source = getFromCache('source') || sources[0]
@@ -59,7 +61,7 @@ class Schedule {
             cache.remove('isClearedOnSunday')
         }
 
-        console.log(_cache);
+        // console.log(_cache);
 
         [['week', _week], ['second', _second], ['source', _source]].forEach(items => {
             pickers.set(...items)
@@ -106,6 +108,8 @@ class Schedule {
 
         const list = listOfFromCache.value
 
+        console.log(list)
+
         if(list) {
             this.call = list
             entities.set(types[_source], 'list', list)
@@ -126,6 +130,12 @@ class Schedule {
         }
 
         setTimeout(() => app.isInit = true, 500)
+
+        let isInCache = (e) => (
+            Object.values(_cache).map(c => Object.values(c)[1]).includes(e.name)
+        );
+
+        console.log(_cache)
     }
 
     prep = async () => {

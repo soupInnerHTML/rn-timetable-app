@@ -19,6 +19,8 @@ class Entities {
     teacher = new Entity('persons/teachers')
     room = new Entity('rooms')
 
+    all = [this.group, this.teacher, this.room]
+
     set(entity, sub, data) {
         this[entity][sub] = data
     }
